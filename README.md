@@ -1,3 +1,3 @@
 # Hadoop simple exercice
 
-In order to understand Map/Reduce, this is small implementation of word count using principles from Map/Reduce.
+In order to understand Map/Reduce, this is a small implementation of word counting using principles from Map/Reduce.
