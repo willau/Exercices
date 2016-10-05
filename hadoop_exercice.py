@@ -23,7 +23,7 @@ def wordcount_map(kval_txt):
 
             # basic processing of punctuations and upper cases
             for e in punct:
-                word = word.rstrip(e).lstrip(e).lower()
+                word = word.replace(e, '').lower()
 
             # append key-value pair (word, 1) to list
             kval_word.append((word, 1))
