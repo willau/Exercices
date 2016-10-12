@@ -1,6 +1,6 @@
 # Name Statistics Computation using Hadoop
 
-Three Map/Reduce classs that process the 'prenoms.csv' file for computing the demanded name statistics.
+Three Map/Reduce classes that process the 'prenoms.csv' file for computing the demanded name statistics.
 
 ### Name Count By Origin
 In order to count the number of name for each origin, type:
