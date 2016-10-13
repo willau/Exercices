@@ -1,9 +1,10 @@
 # Name Statistics Computation using Hadoop
 
-Three Map/Reduce classes that process the 'prenoms.csv' file for computing the demanded name statistics.
+Three Map/Reduce classes that process the 'prenoms.csv' file for computing the demanded name statistics. For creating the jar using maven, typing this command in the directory TD2 should work, it should create a jar file in the directory target :
+- $ mvn package
 
 ### Name Count By Origin
-In order to count the number of name for each origin, type:
+In order to count the number of name for each origin, there 3 useful classes that can be called by typing, names are self-explanatory :
 - $ hadoop jar <jar file> NameCountByOrigin input/path output/path
 
 ### Name Count By Origin Count
