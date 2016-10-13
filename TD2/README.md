@@ -4,7 +4,7 @@ Three Map/Reduce classes that process the 'prenoms.csv' file for computing the d
 - $ mvn package
 
 ### Name Count By Origin
-In order to count the number of name for each origin, there 3 useful classes that can be called by typing, names are self-explanatory :
+In order to count the number of name for each origin, there are 3 useful classes that can be called by using the following command :
 - $ hadoop jar 'jar file' NameCountByOrigin input/path output/path
 
 ### Name Count By Origin Count
