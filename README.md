@@ -4,3 +4,6 @@ Simple Python implementation of MapReduce word count (python 3).
 
 ## TD2
 First real Map/Reduce implementation with name statistics computation using Hadoop on a cluster
+
+## TD4
+Basic Social Network built on HBase
