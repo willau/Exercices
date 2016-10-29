@@ -155,7 +155,7 @@ public class UserHandler {
 
     // Check existence of user's friends and :
     // - Either update information of existing friend by appending user to its list of friends
-    // - Or create new user with bff value set to user
+    // - Or create new friend user with bff value set to user
     private void updateFriends(String friendName) throws IOException {
 
         // If friend's name is not empty and user exists in database
