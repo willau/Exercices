@@ -38,5 +38,6 @@ The console reader is case insensitive and only accepts as answers :
 UserHandler is a class that encapsulates everything necessary for :
 - Creating a new user
 - Updating an existing user
+
 It will automatically decides between a 'Put' or an 'Append' and an instance of UserHandler 
 will just need to add information and call insertIntoDatabase().
