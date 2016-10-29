@@ -5,8 +5,10 @@
  *
  * ConsoleReader is a class that handles all interactions with the user.
  * It will create a connection with the HBase Database and will use
- * a class UserHandler for each user to handle the creation of new user
- * or the update of existing user according to given to its questions.
+ * a class UserHandler for each user to :
+ * - handle the creation of new users
+ * - update existing user
+ * Everything is based on answers to the questions.
  *
  * The social network enforces a few rules :
  * - For simplicity, each person has an unique name (non redundant)

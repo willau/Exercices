@@ -2,9 +2,8 @@
  * UserHandler is a class that encapsulates everything necessary for :
  * - Creating a new user
  * - Updating an existing user
- * It will automatically decides between a 'Put' or an 'Append' and an
- * instance of UserHandler will just need to add information
- * and call insertIntoDatabase().
+ * It will automatically decides between a 'Put' or an 'Append'.
+ * An instance of UserHandler will just need to add information and call insertIntoDatabase().
  *
  * Created by willyau on 26/10/16.
  */
