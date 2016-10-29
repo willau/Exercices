@@ -1,6 +1,8 @@
 
 # TD4 : Social Network built on HBase
 
+#### The Java code is located in TD4/src/main/java/.
+
 ### SocialNetworkBFF
 
 SocialNetworkBFF table needs to exist in the HBase database before launching the software.
