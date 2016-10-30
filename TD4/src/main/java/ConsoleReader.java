@@ -21,6 +21,7 @@
  * The console reader is case insensitive and only accepts as answers :
  * - Name without accents, special characters or numbers
  * - Age between 0 and 99
+ * - Exact answers for multiple choice question
  *
  * Created by willyau on 26/10/16.
  */
@@ -59,7 +60,7 @@ public class ConsoleReader {
 
 
     // Confirmation of answer with only 'y' or 'n'
-    private boolean askYN(String answer, String responseType){
+    private boolean askConfirmation(String answer, String responseType){
 
         // If it's an empty string '', 'q' or 's', do not ask for confirmation !
         if( answer.equals("") || answer.equals("q") || answer.equals("s")) {
@@ -68,17 +69,17 @@ public class ConsoleReader {
 
         // Ask for confirmation of answer
         System.out.println("Confirm that your " + responseType + " is '" + answer + "' (y/n)");
-        String yesNo = "";
+        String yesNoAnswer = "";
         boolean valid = false;
 
         // Until console receives 'y' or 'n' as answer, repeat question
         while ( !valid ){
-            yesNo = this.scan.nextLine();
-            valid = checkFormat(yesNo, "y or n", "^y$|^n$"); // Only accept 'y' or 'n'
+            yesNoAnswer = this.scan.nextLine();
+            String ynRegex = "^y$|^n$";
+            valid = checkFormat(yesNoAnswer, "y or n", ynRegex); // Only accept 'y' or 'n'
         }
 
-        // If answer is validated, return 'true' else, return 'false'
-        if( yesNo.equals("y") ){
+        if( yesNoAnswer.equals("y") ){
             return true;
         }
         else{
@@ -100,7 +101,7 @@ public class ConsoleReader {
 
             // If format respects regex formula, ask for confirmation
             if( checkFormat(answer, responseType, regexFormula) ){
-                confirmation = askYN(answer, responseType);
+                confirmation = askConfirmation(answer, responseType);
             }
         }
         return answer;
@@ -123,17 +124,16 @@ public class ConsoleReader {
                 ConsoleReader consoleReader = new ConsoleReader();
 
                 // Creating regex formula for checking answer format
-                String qRegex       = "^$|^q$";                     // matches 'q' or ''
-                String bffRegex     = "^[a-z]+$";                   // matches name with only alphabet standard character (no accents)
-                String nameRegex    = "^$|".concat(bffRegex);       // matches name or ''
-                String ageRegex     = "^$|^[1-9]$|^[1-9][1-9]$";    // matches 0 to 99 or ''
-                String choiceRegex  = "^$|^flink$|^apex$|^spark$";  // matches 'apex','flink' or 'spark' or ''
-                String sRegex       = "^$|^s$";                     // matches 's' or ''
+                final String qRegex       = "^$|^q$";                     // matches 'q' or ''
+                final String bffRegex     = "^[a-z]+$";                   // matches name with only alphabet standard character (no accents)
+                final String nameRegex    = "^$|".concat(bffRegex);       // matches name or ''
+                final String ageRegex     = "^$|^[1-9]$|^[1-9][1-9]$";    // matches 0 to 99 or ''
+                final String choiceRegex  = "^$|^flink$|^apex$|^spark$";  // matches 'apex','flink' or 'spark' or ''
+                final String sRegex       = "^$|^s$";                     // matches 's' or ''
 
-                // Ask user if he wishes to enter SocialNetworkBFF
                 boolean startSession = "".equals(consoleReader.askQuestion("Enter SocialNetworkBFF ? ('q' to quit / enter to continue)", "choice", qRegex));
                 while( startSession ) {
-                    // Asking for the name of the user
+
                     String name = consoleReader.askQuestion("What is your name ?", "name", nameRegex);
                     UserHandler user = new UserHandler(name, table);
 
@@ -141,15 +141,14 @@ public class ConsoleReader {
                     String bff      = consoleReader.askQuestion("Who is your best friend for life, a.k.a BFF ? (obligatory)", "bff name", bffRegex);
                     String friend   = consoleReader.askQuestion("Who is your other friend ? (enter to skip)", "friend", nameRegex);
                     String age      = consoleReader.askQuestion("How old are you ? (enter to skip)", "age", ageRegex);
-                    String answer   = consoleReader.askQuestion("Do you like Flink, Apex or Spark ? (enter to skip)", "technology", choiceRegex);
+                    String technology = consoleReader.askQuestion("Do you like Flink, Apex or Spark ? (enter to skip)", "technology", choiceRegex);
 
                     // Adding main user's information (UserHandler instance user takes care of creating requests for updating database)
-                    user = user.addBff(bff).addFriend(friend).addInfo("age", age).addInfo("technology", answer);
+                    user = user.addBff(bff).addFriend(friend).addInfo("age", age).addInfo("technology", technology);
 
-                    // Insert Update into HBase database
+                    // Insert updates into HBase database
                     user.updateIntoDatabase();
 
-                    // Ask if user wishes to quit SocialNetworkBFF
                     startSession = "s".equals(consoleReader.askQuestion("Quit SocialNetworkBFF ? (enter to quit / 's' to stay )", "choice", sRegex));
                 }
 
