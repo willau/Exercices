@@ -49,7 +49,7 @@ public class UserHandler extends User {
     }
 
 
-    // Append value to existing one if it is a new value
+    // Update list of friends and insert it
     private void updateOtherFriends(byte[] value) throws IOException {
         String newValue = Bytes.toString(value);
 
@@ -61,6 +61,7 @@ public class UserHandler extends User {
         // Verify that list do not contain new value
         if ( ! listVal.contains(newValue) ){
             appendString = appendString.concat(separator.concat(newValue));
+            // Insert the new list of friends
             insertValue(familyFriends, columnOthers, bytify(oldValue.concat(appendString).trim()));
         }
     }
@@ -98,7 +99,7 @@ public class UserHandler extends User {
     }
 
 
-    // Insert the changes in the database
+    // Realize the insertion into the database
     private void updateUserIntoDatabase() throws IOException {
         if( putOk ) this.table.put(this.put);
         appendString = "" ;

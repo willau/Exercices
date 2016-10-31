@@ -16,12 +16,16 @@
  * - Every one has its own account (friends will be automatically created if they don't exist)
  * - An user's bff will have user as friend or as bff (reciprocity).
  * - A user can be its own bff.
- * - You are a bff or a friend not both (exclusivity).
+ * - A bff is also a friend
  *
  * The console reader is case insensitive and only accepts as answers :
  * - Name without accents, special characters or numbers
  * - Age between 0 and 99
  * - Exact answers for multiple choice question
+ *
+ * BONUS :
+ * ConsoleReader will also ask user if he wants to check consistency of a name
+ * It will use UserChecker to check an user.
  *
  * Created by willyau on 26/10/16.
  */
@@ -124,24 +128,26 @@ public class ConsoleReader {
                 ConsoleReader consoleReader = new ConsoleReader();
 
                 // Creating regex formula for checking answer format
-                final String qRegex             = "^$|^q$";                         // matches 'q' or ''
-                final String obligatoryRegex    = "^[a-z]+$";                       // matches name with only alphabet standard character (no accents)
-                final String nameRegex          = "^$|".concat(obligatoryRegex);    // matches name or ''
-                final String ageRegex           = "^$|^[1-9]$|^[1-9][1-9]$";        // matches 0 to 99 or ''
-                final String choiceRegex        = "^$|^flink$|^apex$|^spark$";      // matches 'apex','flink' or 'spark' or ''
-                final String sRegex             = "^$|^s$";                         // matches 's' or ''
+                final String qRegex                 = "^$|^q$";                         // matches 'q' or ''
+                final String obligatoryNameRegex    = "^[a-z]+$";                       // matches name with only alphabet standard character (no accents)
+                final String nameRegex              = "^$|".concat(obligatoryNameRegex);// matches name or ''
+                final String ageRegex               = "^$|^[1-9]$|^[1-9][1-9]$";        // matches 0 to 99 or ''
+                final String technologyChoiceRegex  = "^$|^flink$|^apex$|^spark$";      // matches 'apex','flink' or 'spark' or ''
+                final String sRegex                 = "^$|^s$";                         // matches 's' or ''
 
+
+                // MAIN FUNCTION : Starting the REPL for filling the HBase database
                 boolean startSession = "".equals(consoleReader.askQuestion("Enter SocialNetworkBFF ? ('q' to quit / enter to continue)", "choice", qRegex));
                 while( startSession ) {
 
-                    name = consoleReader.askQuestion("What is your name ?", "name", obligatoryRegex);
+                    name = consoleReader.askQuestion("What is your name ?", "name", obligatoryNameRegex);
                     UserHandler user = new UserHandler(name, table);
 
                     // Asking information about the user
-                    String bff      = consoleReader.askQuestion("Who is your best friend for life, a.k.a BFF ? (obligatory)", "bff name", obligatoryRegex);
+                    String bff      = consoleReader.askQuestion("Who is your best friend for life, a.k.a BFF ? (obligatory)", "bff name", obligatoryNameRegex);
                     String friend   = consoleReader.askQuestion("Who is your other friend ? (enter to skip)", "friend", nameRegex);
                     String age      = consoleReader.askQuestion("How old are you ? (enter to skip)", "age", ageRegex);
-                    String technology = consoleReader.askQuestion("Do you like Flink, Apex or Spark ? (enter to skip)", "technology", choiceRegex);
+                    String technology = consoleReader.askQuestion("Do you like Flink, Apex or Spark ? (enter to skip)", "technology", technologyChoiceRegex);
 
                     // Adding main user's information (UserHandler instance user takes care of creating requests for updating database)
                     user = user.addBff(bff).addFriend(friend).addInfo("age", age).addInfo("technology", technology);
@@ -152,16 +158,61 @@ public class ConsoleReader {
                     startSession = "s".equals(consoleReader.askQuestion("Quit SocialNetworkBFF ? (enter to quit / 's' to stay )", "choice", sRegex));
                 }
 
-                // BONUS : check the consistency of last user who responded to question
-                System.out.println("Checking the consistency of user " + name);
 
+
+                // BONUS : Starting the REPL for checking consistency of a user
+                boolean startCheck = "".equals(consoleReader.askQuestion("Do you want to check consistency of an user ? ('q' to quit / enter to continue)", "choice", qRegex));
+                while( startCheck ) {
+
+                    String nameToCheck = consoleReader.askQuestion("Whose consistency do you want to check ? ", "name to check", obligatoryNameRegex);
+                    UserChecker userChecker = new UserChecker(nameToCheck, table);
+                    String warning = "Inconsistency found : ";
+
+                    if( userChecker.exists() ){
+                        boolean consistent = true ;
+                        if( ! userChecker.hasBff() ){
+                            System.out.println(warning + nameToCheck + " do not have bff.");
+                            consistent = false ;
+                        }
+                        if( ! userChecker.bffHasId() ){
+                            System.out.println(warning + "bff is not a row id.");
+                            consistent = false ;
+                        }
+                        if( ! userChecker.bffHasUserAsFriend() ){
+                            System.out.println(warning + "bff does not have " + nameToCheck + " as friend.");
+                            consistent = false ;
+                        }
+                        if( ! userChecker.otherFriendsHaveIds() ){
+                            System.out.println(warning + "one friend is not a row id.");
+                            consistent = false ;
+                        }
+                        if( ! userChecker.friendsHaveUserAsFriend() ){
+                            System.out.println(warning + "one friend do not have " + nameToCheck + " as friend.");
+                            consistent = false ;
+                        }
+                        if( ! userChecker.uniqueFriends() ){
+                            System.out.println(warning + "list of all friends is not unique");
+                            consistent = false ;
+                        }
+                        if( consistent ){
+                            System.out.println(nameToCheck + " is consistent with his friends.");
+                        }
+
+                    }else{
+                        System.out.println("The name you gave does not exist within SocialNetworkBFF, please give another name.");
+                    }
+
+                    startCheck = "s".equals(consoleReader.askQuestion("Quit consistency checking ? (enter to quit / 's' to stay )", "choice", sRegex));
+                }
+
+
+            // Close table
             }finally {
-                // Close table
                 if( table != null ) table.close();
             }
 
+        // Close connection
         }finally{
-            // Close connection
             connection.close();
         }
 

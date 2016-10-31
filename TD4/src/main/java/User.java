@@ -41,7 +41,6 @@ public class User {
         return this.table.exists(get);
     }
 
-
     // Change String to byte[]
     protected byte[] bytify(String string){
         return Bytes.toBytes(string.toLowerCase());
@@ -78,7 +77,7 @@ public class User {
 
 
     // Get other's name
-    protected ArrayList<String> getOtherFriendsName() throws IOException {
+    protected ArrayList<String> getFriendsName() throws IOException {
         Result row = this.table.get(this.get);
         String friendNames = this.getRowValue(row, familyFriends, columnOthers);
         String[] friendArray = friendNames.split(separator);
@@ -89,4 +88,14 @@ public class User {
         return friendList;
     }
 
+    
+    // Verify user possess a specific friend
+    protected boolean hasFriend(String someoneName) throws IOException {
+        ArrayList<String> friendsName = getFriendsName();
+        if( friendsName.contains(someoneName) ){
+            return true;
+        }else{
+            return false;
+        }
+    }
 }

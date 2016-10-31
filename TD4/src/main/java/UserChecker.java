@@ -16,14 +16,18 @@ import org.apache.hadoop.hbase.client.Table;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.TreeSet;
 
 
 public class UserChecker extends User{
 
+    // Constructor
     public UserChecker(String name, Table table) {
         super(name, table);
     }
 
+
+    // Is this friend also a row id ?
     private boolean isId(String friendName) throws IOException {
         Get friendGet = new Get(this.bytify(friendName));
         Result rowFriend = this.table.get(friendGet);
@@ -35,14 +39,26 @@ public class UserChecker extends User{
     }
 
 
+    // Does user have a bff ?
+    public boolean hasBff() throws IOException {
+        if( "".equals(this.getBffName()) ){
+            return false;
+        }else{
+            return true;
+        }
+    }
+
+
+    // Is user's bff also a row id ?
     public boolean bffHasId() throws IOException {
         String bffName = this.getBffName();
         return isId(bffName);
     }
 
 
+    // Are all of user's friends also row ids ?
     public boolean otherFriendsHaveIds() throws IOException {
-        ArrayList<String> friendList = this.getOtherFriendsName();
+        ArrayList<String> friendList = this.getFriendsName();
         for(String friend : friendList){
             if( !this.isId(friend) ){
                 return false;
@@ -52,26 +68,37 @@ public class UserChecker extends User{
     }
 
 
-    public boolean bffHasUserAsFriend(){
+
+    // Does user's bff have him as a friend ?
+    public boolean bffHasUserAsFriend() throws IOException {
+        User userBff = new User(this.getBffName(), this.table);
+        return userBff.hasFriend(this.name);
+    }
+
+
+    // Do all of user's friends have him as a friend ?
+    public boolean friendsHaveUserAsFriend() throws IOException {
+        for(String friend : this.getFriendsName()){
+            User userFriend = new User(friend, this.table);
+            if( ! userFriend.hasFriend(this.name) ){
+                return false;
+            }
+        }
         return true;
     }
 
 
-    public boolean allFriendsHaveUserAsFriend(){
-        return true;
-    }
+    // Do user have unique friends ? (no redundancy)
+    public boolean uniqueFriends() throws IOException {
+        ArrayList<String> friendList = this.getFriendsName();
+        TreeSet<String> friendSet = new TreeSet<String>(friendList);
 
-
-    public boolean uniqueFriends(){
-        return true;
-    }
-
-    public boolean checkConsistency() throws IOException{
-        boolean bffConsistency = this.bffHasId() && this.bffHasUserAsFriend() ;
-        boolean allFriendsConsistency = this.otherFriendsHaveIds() && allFriendsHaveUserAsFriend() ;
-        boolean uniqueFriendsConsistency = this.uniqueFriends();
-        boolean consistency = bffConsistency && allFriendsConsistency && uniqueFriendsConsistency ;
-        return consistency ;
+        // If set's length equals list's length, we have unique friends
+        if( friendList.size() == friendSet.size() ){
+            return true;
+        }else{
+            return false;
+        }
     }
 
 }
