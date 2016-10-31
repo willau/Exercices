@@ -11,7 +11,7 @@
  * Everything is based on answers to the questions.
  *
  * The social network enforces a few rules :
- * - For simplicity, each person has an unique name (non redundant)
+ * - For simplicity, each person has an unique name (no redundancy)
  * - Bff value is mandatory (best friend for life)
  * - Every one has its own account (friends will be automatically created if they don't exist)
  * - An user's bff will have user as friend or as bff (reciprocity).
@@ -42,7 +42,6 @@ import static java.util.regex.Pattern.matches;
 public class ConsoleReader {
     Scanner scan ;
 
-    // Constructor
     public ConsoleReader(){
         this.scan = new Scanner(System.in);
     }
@@ -118,27 +117,28 @@ public class ConsoleReader {
             // Access HBase table "SocialNetworkBFF" (it has to exist)
             Table table = connection.getTable(TableName.valueOf("SocialNetworkBFF"));
             System.out.println("\nConnection to HBase established\n\n\n");
+            String name = "" ;
 
             try {
                 // Instance of ConsoleReader for asking input from user
                 ConsoleReader consoleReader = new ConsoleReader();
 
                 // Creating regex formula for checking answer format
-                final String qRegex       = "^$|^q$";                     // matches 'q' or ''
-                final String bffRegex     = "^[a-z]+$";                   // matches name with only alphabet standard character (no accents)
-                final String nameRegex    = "^$|".concat(bffRegex);       // matches name or ''
-                final String ageRegex     = "^$|^[1-9]$|^[1-9][1-9]$";    // matches 0 to 99 or ''
-                final String choiceRegex  = "^$|^flink$|^apex$|^spark$";  // matches 'apex','flink' or 'spark' or ''
-                final String sRegex       = "^$|^s$";                     // matches 's' or ''
+                final String qRegex             = "^$|^q$";                         // matches 'q' or ''
+                final String obligatoryRegex    = "^[a-z]+$";                       // matches name with only alphabet standard character (no accents)
+                final String nameRegex          = "^$|".concat(obligatoryRegex);    // matches name or ''
+                final String ageRegex           = "^$|^[1-9]$|^[1-9][1-9]$";        // matches 0 to 99 or ''
+                final String choiceRegex        = "^$|^flink$|^apex$|^spark$";      // matches 'apex','flink' or 'spark' or ''
+                final String sRegex             = "^$|^s$";                         // matches 's' or ''
 
                 boolean startSession = "".equals(consoleReader.askQuestion("Enter SocialNetworkBFF ? ('q' to quit / enter to continue)", "choice", qRegex));
                 while( startSession ) {
 
-                    String name = consoleReader.askQuestion("What is your name ?", "name", nameRegex);
+                    name = consoleReader.askQuestion("What is your name ?", "name", obligatoryRegex);
                     UserHandler user = new UserHandler(name, table);
 
                     // Asking information about the user
-                    String bff      = consoleReader.askQuestion("Who is your best friend for life, a.k.a BFF ? (obligatory)", "bff name", bffRegex);
+                    String bff      = consoleReader.askQuestion("Who is your best friend for life, a.k.a BFF ? (obligatory)", "bff name", obligatoryRegex);
                     String friend   = consoleReader.askQuestion("Who is your other friend ? (enter to skip)", "friend", nameRegex);
                     String age      = consoleReader.askQuestion("How old are you ? (enter to skip)", "age", ageRegex);
                     String technology = consoleReader.askQuestion("Do you like Flink, Apex or Spark ? (enter to skip)", "technology", choiceRegex);
@@ -152,6 +152,9 @@ public class ConsoleReader {
                     startSession = "s".equals(consoleReader.askQuestion("Quit SocialNetworkBFF ? (enter to quit / 's' to stay )", "choice", sRegex));
                 }
 
+                // BONUS : check the consistency of last user who responded to question
+                System.out.println("Checking the consistency of user " + name);
+
             }finally {
                 // Close table
                 if( table != null ) table.close();
@@ -161,6 +164,8 @@ public class ConsoleReader {
             // Close connection
             connection.close();
         }
+
+
 
     }
 }

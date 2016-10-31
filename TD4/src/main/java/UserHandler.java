@@ -1,8 +1,9 @@
 /**
+ * UserHandler : extension of User class
+ * Use for adding and updating new information into user's row.
  * UserHandler is a class that encapsulates everything necessary for :
  * - Creating a new user
  * - Updating an existing user
- * It will automatically decides between a 'Put' or an 'Append'.
  * An instance of UserHandler will just need to add information and call insertIntoDatabase().
  *
  * Created by willyau on 26/10/16.
@@ -18,113 +19,69 @@ import java.util.Set;
 import java.util.TreeSet;
 
 
-public class UserHandler {
+public class UserHandler extends User {
 
-    final static byte[] familyInfo      = Bytes.toBytes("info");
-    final static byte[] familyFriends   = Bytes.toBytes("friends");
-    final static byte[] columnBff       = Bytes.toBytes("bff");
-    final static byte[] columnOthers    = Bytes.toBytes("others");
-    private Set<String> listFriend;
-    private String name;
-    private Put put;
-    private Get get;
-    private Append append;
-    private boolean appendOk;
+    // Attributes
+    private Set<String> listNewFriends;
+    private String appendString;
     private boolean putOk;
-    private Table table;
 
-    // Constructor : we instantiate UserHandler with user's name and table of HBase
-    public UserHandler(String name, Table table){
-        this.listFriend = new TreeSet<String>();
-        this.name       = name;
-        byte[] nameByte = bytify(name);
-        this.put        = new Put(nameByte);
-        this.get        = new Get(nameByte);
-        this.append     = new Append(nameByte);
-        this.appendOk   = false;
+    // Constructor
+    public UserHandler(String name, Table table) {
+        super(name, table);
+        this.appendString = "";
         this.putOk      = false;
-        this.table      = table;
+        this.listNewFriends = new TreeSet<String>();
     }
 
 
-    // Check existence of main user
-    private boolean exists() throws IOException{
-        return this.table.exists(get);
-    }
-
-
-    // Change String to byte[]
-    private byte[] bytify(String string){
-        return Bytes.toBytes(string.toLowerCase());
-    }
-
-
-    // If value does not exist, return bytes of an empty string ''
-    private byte[] getValue(final byte[] family, final byte[] column) throws IOException {
-        byte[] value = bytify("");
-        // If user exists in the database
-        if (this.exists()) {
-            Result row = table.get(get);
-            if (row.containsColumn(family, column)) {
-                value = row.getValue(family, column);
-            }
-        }
-        return value;
-    }
-
-
-    // Update value only if there is a change
-    private void updateValue(final byte[] family, final byte[] column, final byte[] value) throws IOException {
-        String oldValue = Bytes.toString(getValue(family, column));
+    // Insert value only if there is a change
+    private void insertValue(byte[] family, byte[] column, byte[] value) throws IOException {
+        String oldValue = Bytes.toString(this.getByteValue(family, column));
         String newValue = Bytes.toString(value);
         boolean equality = oldValue.equalsIgnoreCase(newValue);
         // If new value is different from existing value, replace it
-        if( !equality ){
+        if( ! equality ){
             put.addColumn(family, column, value);
-            putOk = true; // Indicate that a 'put' action is to be done
+            // Indicate that a 'put' action is to be done
+            putOk = true;
         }
     }
 
 
     // Append value to existing one if it is a new value
-    private void appendValue(final byte[] family, final byte[] column, final byte[] value) throws IOException {
+    private void updateOtherFriends(byte[] value) throws IOException {
         String newValue = Bytes.toString(value);
 
         // Get old values and split it into a list of values and an array of values
-        String oldValue = Bytes.toString(getValue(family, column));
-        String separator = "";
+        String oldValue = Bytes.toString(this.getByteValue(familyFriends, columnOthers));
         String[] arrayVal = oldValue.split(separator);
         ArrayList<String> listVal = new ArrayList<String>(Arrays.asList(arrayVal));
 
-        // If column did not exist (empty string), create a new column with the value
-        if( arrayVal[0] == "" ){
-            put.addColumn(family, column, value);
-            putOk = true; // Indicate that a 'put' action is to be done
-
-        // Otherwise, append it to existing values with separator
-        }else{
-
-            // Verify that list do not contain new value
-            if ( !listVal.contains(newValue) ){
-                append.add(family, column, bytify(separator.concat(newValue)));
-                appendOk = true; // Indicate that an 'append' action is to be done
-            }
+        // Verify that list do not contain new value
+        if ( ! listVal.contains(newValue) ){
+            appendString = appendString.concat(separator.concat(newValue));
+            insertValue(familyFriends, columnOthers, bytify(oldValue.concat(appendString).trim()));
         }
     }
 
 
     // Add information with a given name of column
     public UserHandler addInfo(String column, String info) throws IOException {
-        if( info.length() > 0 ) updateValue(familyInfo, bytify(column), bytify(info));
+        if( info.length() > 0 ) insertValue(familyInfo, bytify(column), bytify(info));
         return this;
     }
 
 
     // Add bff
     public UserHandler addBff(String nameOfBff) throws IOException {
+        byte[] byteBff = bytify(nameOfBff);
         if( nameOfBff.length() > 0 ){
-            updateValue(familyFriends, columnBff, bytify(nameOfBff));
-            this.listFriend.add(nameOfBff); // Add it to user's list of friends
+            insertValue(familyFriends, columnBff, byteBff);
+            if( ! nameOfBff.equals(this.name) ){
+                this.listNewFriends.add(nameOfBff);
+                updateOtherFriends(byteBff);
+            }
         }
         return this;
     }
@@ -132,50 +89,52 @@ public class UserHandler {
 
     // Add friend
     public UserHandler addFriend(String friend) throws IOException {
-        // If friend is not empty and is not bff and is not user, append it to the list of existing friends
-        if( friend.length() > 0 && !listFriend.contains(friend) && !friend.equals(this.name) ){
-            appendValue(familyFriends, columnOthers, bytify(friend));
-            this.listFriend.add(friend); // Add it to user's list of friends
+        // If friend is not user and is not already a friend, append it to the list of existing friends
+        if( friend.length() > 0  && ! friend.equals(this.name) && ! listNewFriends.contains(friend) ){
+            updateOtherFriends(bytify(friend));
+            this.listNewFriends.add(friend);
         }
         return this;
     }
 
 
     // Insert the changes in the database
-    private void updateUser() throws IOException {
+    private void updateUserIntoDatabase() throws IOException {
         if( putOk ) this.table.put(this.put);
-        if( appendOk ) this.table.append(this.append);
+        appendString = "" ;
+        putOk = false ;
     }
 
 
     // Check existence of user's friends and :
     // - Either update information of existing friend by appending user to its list of friends.
     // - Or create new friend user with bff value set to user.
-    private void updateFriend(String friendName) throws IOException {
+    private void updateFriendIntoDatabase(String friendName) throws IOException {
 
-        // If friend's name is not empty
         if( friendName.length() > 0) {
             UserHandler friend = new UserHandler(friendName, this.table);
 
-            // If friend exists, we append user's name to the column 'others'
-            if (friend.exists()) {
+            // If friend exists, we add user's name to its list of other friends
+            if( friend.exists() ){
                 friend.addFriend(this.name);
 
-            // Else we create friend and we insert user's name in the column 'bff'
-            } else {
+            // Otherwise, its bff is user
+            }else{
                 friend.addBff(this.name);
             }
-            // Insert the change into the database
-            friend.updateUser();
+
+            friend.updateUserIntoDatabase();
         }
     }
 
 
     // Insert user then update friends' information in the database
     public void updateIntoDatabase() throws IOException {
-        this.updateUser();
-        for(String friend: listFriend) this.updateFriend(friend) ;
+        this.updateUserIntoDatabase();
+        for(String friend: listNewFriends) this.updateFriendIntoDatabase(friend) ;
     }
+
+
 
 }
 
