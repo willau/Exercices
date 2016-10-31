@@ -25,7 +25,7 @@
  *
  * BONUS :
  * ConsoleReader will also ask user if he wants to check consistency of a name
- * It will use UserChecker to check an user.
+ * It will use UserChecker to check a user.
  *
  * Created by willyau on 26/10/16.
  */
