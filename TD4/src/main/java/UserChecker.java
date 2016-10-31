@@ -2,7 +2,6 @@
  * UserChecker analyzes a user row id and will determine its consistency by checking if :
  * - it has to possess a bff (someone or himself)
  * - its bff is an id (column bff)
- * - bff is a friend
  * - its other friends are also ids (column others)
  * - all friends are unique (no redundancy)
  * - friends and bff ids have user as friend or bff (reciprocity of friendship)
