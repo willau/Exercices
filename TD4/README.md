@@ -2,6 +2,11 @@
 
 **Source code is located in TD4/src/main/java**
 
+The database is called "SocialNetworkBFF".
+
+In order to launch the code on the hadoop cluster, type the following in the command line :
+`HADOOP_CLASSPATH=$(hbase classpath) hadoop jar SocialNetwork.jar ConsoleReader`
+
 ### ConsoleReader 
 
 It is the main program that lauches 2 REPL :
