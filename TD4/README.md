@@ -2,7 +2,7 @@
 
 **Source code is located in TD4/src/main/java**
 
-The HBase table is called "wauHTable" on the cluster. The implementation seems complicated but only used one instance of Put to insert data into the HTable during each REPL session.
+The HBase table is called "wauHTable" on the cluster. The implementation seems complicated but only used one instance of Put to insert data into the HTable during each REPL session, instead of creating an instance Put for each answer to the questions.
 
 In order to launch the code on the hadoop cluster, type the following in the command line :
 
