@@ -31,6 +31,7 @@
  */
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
@@ -115,6 +116,7 @@ public class ConsoleReader {
 
         // Establishing connection to HBase
         Configuration conf = HBaseConfiguration.create();
+        conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
         Connection connection = ConnectionFactory.createConnection(conf);
 
         try {
