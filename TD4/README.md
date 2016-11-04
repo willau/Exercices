@@ -5,6 +5,7 @@
 The database is called "SocialNetworkBFF".
 
 In order to launch the code on the hadoop cluster, type the following in the command line :
+
 `HADOOP_CLASSPATH=$(hbase classpath) hadoop jar SocialNetwork.jar ConsoleReader`
 
 ### ConsoleReader 
