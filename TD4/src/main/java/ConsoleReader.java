@@ -121,7 +121,7 @@ public class ConsoleReader {
 
         try {
             // Access HBase table "SocialNetworkBFF" (it has to exist)
-            Table table = connection.getTable(TableName.valueOf("SocialNetworkBFF"));
+            Table table = connection.getTable(TableName.valueOf("wauHTable"));
             System.out.println("\nConnection to HBase established\n\n\n");
             String name = "" ;
 
