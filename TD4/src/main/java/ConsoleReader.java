@@ -1,6 +1,6 @@
 /**
  * WARNING :
- * "SocialNetworkBFF" needs to exist before launching the main.
+ * "wauHTable" needs to exist before launching the main.
  * It also needs to have 2 families "friends" and "info".
  *
  * ConsoleReader is a class that handles all interactions with the user.
@@ -120,7 +120,7 @@ public class ConsoleReader {
         Connection connection = ConnectionFactory.createConnection(conf);
 
         try {
-            // Access HBase table "SocialNetworkBFF" (it has to exist)
+            // Access HBase table "wauHTable" (it has to exist)
             Table table = connection.getTable(TableName.valueOf("wauHTable"));
             System.out.println("\nConnection to HBase established\n\n\n");
             String name = "" ;
